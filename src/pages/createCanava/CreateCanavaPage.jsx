@@ -1,5 +1,6 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { Circle, Layer, Rect, Stage } from "react-konva";
+import { useLayoutEffect, useRef, useState } from "react";
+import { Layer, Rect, Stage } from "react-konva";
+import Rectangle from "../../component/Canva/Rectangle";
 
 function CreateCanavaPage({
   color,
@@ -7,6 +8,9 @@ function CreateCanavaPage({
   setRectangles,
   selectedCom,
   SetSelectedCom,
+  checkDeselect,
+  selectedId,
+  selectShape,
 }) {
   const containerRef = useRef(null);
   const [stageSize, setStageSize] = useState({
@@ -15,7 +19,6 @@ function CreateCanavaPage({
   });
   const stageRef = useRef(null);
 
-  const [isDrawing, setIsDrawing] = useState(false);
   const [newRect, setNewRect] = useState(null);
 
   useLayoutEffect(() => {
@@ -38,96 +41,89 @@ function CreateCanavaPage({
   const handlePointerDown = (e) => {
     // Only draw if clicking empty area
     if (e.target !== e.target.getStage()) return;
+    SetSelectedCom(null);
+    selectShape(null);
 
     const stage = stageRef.current;
     const pos = stage.getPointerPosition();
-    // console.log("🚀 ~ handlePointerDown ~ pos:", pos);
-    setIsDrawing(true);
+    if (!pos) return;
 
     setNewRect({
       x: pos.x,
       y: pos.y,
       width: 0,
       height: 0,
+      color,
+      id: crypto.randomUUID(),
     });
   };
 
   const handlePointerMove = () => {
-    if (!isDrawing) return;
-
     const stage = stageRef.current;
     const pos = stage.getPointerPosition();
-    const uniqueId = crypto.randomUUID();
-    // console.log("🚀 ~ handlePointerMove ~ pos:", pos);
+    if (!pos) return;
 
     setNewRect((prev) => {
+      if (!prev) return prev;
       const width = pos.x - prev.x;
-      // console.log("🚀 ~ handlePointerMove ~ width:", pos.x - prev.x);
       const height = pos.y - prev.y;
-      // console.log("🚀 ~ handlePointerMove ~ height:", height);
 
       return {
         x: width < 0 ? pos.x : prev.x,
         y: height < 0 ? pos.y : prev.y,
         width: Math.abs(width),
         height: Math.abs(height),
-        color,
-        id: uniqueId,
+        color: prev.color,
+        id: prev.id,
       };
     });
   };
 
   const handlePointerUp = () => {
-    if (!isDrawing) return;
-
-    setRectangles((prev) => [...prev, newRect]);
+    if (newRect && newRect.width > 2 && newRect.height > 2) {
+      setRectangles((prev) => [...prev, newRect]);
+      SetSelectedCom(newRect.id);
+      selectShape(newRect.id);
+    }
     setNewRect(null);
-    setIsDrawing(false);
   };
-
-  const handleLayerClick = (_id) => {
-    let f = rectangles.find((data) => data.id === _id).id;
-    SetSelectedCom(f);
-  };
-
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === "Backspace") {
-        setRectangles((prev) => prev.filter((rect) => rect.id !== selectedCom));
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [selectedCom]);
 
   return (
     <>
-      <div ref={containerRef} className="h-screen col-span-10 bg-[#f5f5f5]">
+      <div ref={containerRef} className="h-full min-w-0 bg-[#f5f5f5]">
         <Stage
           ref={stageRef}
-          height={stageSize.height}
           width={stageSize.width}
-          onPointerDown={handlePointerDown}
-          onPointerMove={handlePointerMove}
-          onPointerUp={handlePointerUp}
+          height={stageSize.height}
+          onMouseDown={(e) => {
+            checkDeselect(e);
+            handlePointerDown(e);
+          }}
+          onMouseMove={handlePointerMove}
+          onMouseUp={handlePointerUp}
+          onTouchStart={(e) => {
+            checkDeselect(e);
+            handlePointerDown(e);
+          }}
+          onTouchMove={handlePointerMove}
+          onTouchEnd={handlePointerUp}
         >
           <Layer>
             {rectangles.map((rect, i) => {
               return (
-                <Rect
-                  onClick={() => handleLayerClick(rect.id)}
+                <Rectangle
                   key={i}
-                  {...rect}
-                  fill={rect.color}
-                  stroke={
-                    rect.id === selectedCom ? "rgba(0, 0, 255, 0.8)" : undefined
-                  }
-                  strokeWidth={1}
-                  draggable={true}
+                  shapeProps={rect}
+                  isSelected={rect.id === selectedId}
+                  onSelect={() => {
+                    SetSelectedCom(rect.id);
+                    selectShape(rect.id);
+                  }}
+                  onChange={(newAttrs) => {
+                    const rects = rectangles.slice();
+                    rects[i] = newAttrs;
+                    setRectangles(rects);
+                  }}
                 />
               );
             })}
@@ -135,9 +131,9 @@ function CreateCanavaPage({
             {newRect && (
               <Rect
                 {...newRect}
-                fill="rgba(0, 140, 255, 0.4)"
-                stroke="rgba(0, 0, 255, 0.6)"
-                strokeWidth={0.5}
+                fill="rgba(119, 130, 237, 0.4)"
+                stroke="rgba(119, 130, 237, 1)"
+                strokeWidth={1}
               />
             )}
           </Layer>
