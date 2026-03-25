@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Sidebar from "./component/ui/Sidebar";
 import CreateCanavaPage from "./pages/createCanava/CreateCanavaPage";
 import RightSideBar from "./component/ui/RightSideBar";
@@ -9,6 +9,7 @@ function App() {
   const [active, setActive] = useState("canava");
   const [color, setColor] = useState("#FFC0CB");
   const [selectedCom, SetSelectedCom] = useState(null);
+  const stageRef = useRef(null);
 
   const [rectangles, setRectangles] = useState([]);
   const [selectedId, selectShape] = useState(null);
@@ -63,6 +64,7 @@ function App() {
             checkDeselect={checkDeselect}
             selectShape={selectShape}
             selectedId={selectedId}
+            stageRef={stageRef}
           />
         )}
 
@@ -75,6 +77,7 @@ function App() {
           rectangles={rectangles}
           setColor={setColor}
           selectedCom={selectedCom}
+          stageRef={stageRef}
         />
       </div>
     </>
