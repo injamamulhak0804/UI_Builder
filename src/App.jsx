@@ -1,38 +1,83 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Sidebar from "./component/ui/Sidebar";
 import CreateCanavaPage from "./pages/createCanava/CreateCanavaPage";
 import RightSideBar from "./component/ui/RightSideBar";
+import SettingsPage from "./pages/settings/SettingsPage";
+import ProfilePage from "./pages/profile/ProfilePage";
 
 function App() {
   const [active, setActive] = useState("canava");
   const [color, setColor] = useState("#FFC0CB");
-  const [rectangles, setRectangles] = useState([]);
   const [selectedCom, SetSelectedCom] = useState(null);
 
-  // console.log("Rec: ", rectangles);
+  const [rectangles, setRectangles] = useState([]);
+  const [selectedId, selectShape] = useState(null);
+
+  const checkDeselect = (e) => {
+    // deselect when clicked on empty area
+    const clickedOnEmpty = e.target === e.target.getStage();
+    if (clickedOnEmpty) {
+      selectShape(null);
+    }
+  };
+
+  useEffect(() => {
+    const handleBackSpace = (e) => {
+      if (e.key !== "Backspace") return;
+      if (!selectedCom) return;
+
+      const tag = e.target?.tagName;
+      const isTyping =
+        tag === "INPUT" ||
+        tag === "TEXTAREA" ||
+        tag === "SELECT" ||
+        e.target?.isContentEditable;
+      if (isTyping) return;
+
+      e.preventDefault();
+      setRectangles((prev) => prev.filter((item) => item.id !== selectedCom));
+      SetSelectedCom(null);
+      selectShape(null);
+    };
+
+    window.addEventListener("keydown", handleBackSpace);
+    return () => {
+      window.removeEventListener("keydown", handleBackSpace);
+    };
+  }, [selectedCom]);
 
   return (
     <>
-      <div className="grid grid-cols-12 w-full h-full overflow-y-hidden">
-        <div className="col-span-1">
-          <Sidebar active={active} setActive={setActive} />
-        </div>
-        {active == "canava" && (
+      <div className="grid h-screen w-full grid-cols-[72px_minmax(0,1fr)_320px] overflow-hidden">
+        <Sidebar active={active} setActive={setActive} />
+
+        {active === "canava" && (
           <CreateCanavaPage
             color={color}
             rectangles={rectangles}
             setRectangles={setRectangles}
             selectedCom={selectedCom}
             SetSelectedCom={SetSelectedCom}
+            checkDeselect={checkDeselect}
+            selectShape={selectShape}
+            selectedId={selectedId}
           />
         )}
-        <RightSideBar
-          color={color}
-          setRectangles={setRectangles}
-          rectangles={rectangles}
-          setColor={setColor}
-          selectedCom={selectedCom}
-        />
+
+        {active === "settings" && <SettingsPage />}
+        {active === "profile" && <ProfilePage />}
+
+        {active === "canava" ? (
+          <RightSideBar
+            color={color}
+            setRectangles={setRectangles}
+            rectangles={rectangles}
+            setColor={setColor}
+            selectedCom={selectedCom}
+          />
+        ) : (
+          <div className="w-full border-l border-border bg-surface" />
+        )}
       </div>
     </>
   );
