@@ -1,15 +1,18 @@
-// ── Divider ────────────────────────────────────────────────────
+// ── Divider 
 export function Divider() {
   return <div className="w-6 h-px bg-border-subtle mx-auto" />;
 }
 
-// ── Avatar ─────────────────────────────────────────────────────
-export function Avatar() {
+// ── Avatar ─
+export function Avatar({ active = false, onClick }) {
   return (
     <div className="relative group flex items-center justify-center">
       <button
         aria-label="Profile"
-        className="w-10 h-10 rounded-full overflow-hidden ring-2 ring-border hover:ring-accent transition-all duration-150 cursor-pointer"
+        onClick={onClick}
+        className={`w-10 h-10 rounded-full overflow-hidden ring-2 transition-all duration-150 cursor-pointer ${
+          active ? "ring-blue-500" : "ring-border hover:ring-accent"
+        }`}
       >
         {/* Placeholder avatar — swap src for real image */}
         <div className="w-full h-full bg-gradient-to-br from-orange-400 to-rose-500 flex items-center justify-center">
@@ -23,7 +26,7 @@ export function Avatar() {
   );
 }
 
-// ── Logo ───────────────────────────────────────────────────────
+// ── Logo ───
 export function Logo() {
   return (
     <div className="relative group flex items-center justify-center">
@@ -37,7 +40,7 @@ export function Logo() {
   );
 }
 
-// ── Tooltip ────────────────────────────────────────────────────
+// ── Tooltip 
 export function Tooltip({ label }) {
   return (
     <div
