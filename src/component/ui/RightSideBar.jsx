@@ -1,14 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-
-const SMOOTH_ALPHA = 0.22;
-
-/** Native color inputs only accept #rrggbb. */
-function hex6ForColorInput(value, fallback) {
-  if (typeof value === "string" && /^#[0-9A-Fa-f]{6}$/i.test(value.trim())) {
-    return value.trim();
-  }
-  return fallback;
-}
+import { useMemo } from "react";
+import { addShape, downloadPDF, hex6ForColorInput } from "../../helper";
 
 function RightSideBar({
   color,
@@ -16,86 +7,16 @@ function RightSideBar({
   setRectangles,
   rectangles,
   selectedCom,
+  stageRef,
 }) {
-  const [textSize, setTextSize] = useState(16);
-  const [editingDims, setEditingDims] = useState(false);
-  const [smooth, setSmooth] = useState({ x: 0, y: 0, w: 0, h: 0 });
-  const smoothRef = useRef(smooth);
-
   const selectedShape = useMemo(
     () => rectangles.find((item) => item.id === selectedCom) || null,
     [rectangles, selectedCom],
   );
 
-  useEffect(() => {
-    smoothRef.current = smooth;
-  }, [smooth]);
-
-  /** Snap smoothing when the selected layer id changes (not every coordinate tick). */
-  useEffect(() => {
-    if (!selectedShape) return;
-    const next = {
-      x: Number(selectedShape.x),
-      y: Number(selectedShape.y),
-      w: Number(selectedShape.width),
-      h: Number(selectedShape.height),
-    };
-    smoothRef.current = next;
-    setSmooth(next);
-  }, [selectedCom, selectedShape?.id]);
-
-  /** Lerp X/Y/W/H toward the model while not typing in the inputs. */
-  useEffect(() => {
-    if (!selectedShape || editingDims) return;
-
-    const targets = {
-      x: Number(selectedShape.x),
-      y: Number(selectedShape.y),
-      w: Number(selectedShape.width),
-      h: Number(selectedShape.height),
-    };
-
-    let raf;
-
-    const tick = () => {
-      const prev = smoothRef.current;
-      const t = SMOOTH_ALPHA;
-      const next = {
-        x: prev.x + (targets.x - prev.x) * t,
-        y: prev.y + (targets.y - prev.y) * t,
-        w: prev.w + (targets.w - prev.w) * t,
-        h: prev.h + (targets.h - prev.h) * t,
-      };
-      const epsilon = 0.45;
-      const done =
-        Math.abs(next.x - targets.x) < epsilon &&
-        Math.abs(next.y - targets.y) < epsilon &&
-        Math.abs(next.w - targets.w) < epsilon &&
-        Math.abs(next.h - targets.h) < epsilon;
-
-      if (done) {
-        smoothRef.current = targets;
-        setSmooth(targets);
-        return;
-      }
-
-      smoothRef.current = next;
-      setSmooth(next);
-      raf = requestAnimationFrame(tick);
-    };
-
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [
-    selectedShape?.x,
-    selectedShape?.y,
-    selectedShape?.width,
-    selectedShape?.height,
-    editingDims,
-    selectedCom,
-  ]);
-
   const updateSelectedShape = (patch) => {
+    console.log(selectedShape);
+
     if (!selectedCom) return;
     setRectangles((prev) =>
       prev.map((item) =>
@@ -132,54 +53,6 @@ function RightSideBar({
     updateSelectedShape({ color: next, fill: next });
   };
 
-  const addShape = (type) => {
-    const id = crypto.randomUUID();
-
-    const base = {
-      id,
-      x: 120,
-      y: 120,
-      color,
-      fill: color,
-      stroke: "transparent",
-      strokeWidth: 0,
-    };
-
-    if (type === "circle") {
-      setRectangles((prev) => [
-        ...prev,
-        {
-          ...base,
-          width: 110,
-          height: 110,
-          radius: 55,
-          type: "circle",
-        },
-      ]);
-      return;
-    }
-
-    if (type === "rect") {
-      setRectangles((prev) => [
-        ...prev,
-        { ...base, width: 120, height: 90, cornerRadius: 0 },
-      ]);
-      return;
-    }
-
-    if (type === "square") {
-      setRectangles((prev) => [...prev, { ...base, width: 100, height: 100 }]);
-      return;
-    }
-
-    if (type === "pill") {
-      setRectangles((prev) => [
-        ...prev,
-        { ...base, width: 140, height: 56, cornerRadius: 9999 },
-      ]);
-    }
-  };
-
   const handlePositionChange = (key, value) => {
     if (!selectedShape) return;
     const parsed = Number(value);
@@ -212,14 +85,10 @@ function RightSideBar({
                   type="number"
                   value={
                     selectedShape
-                      ? Math.round(
-                          editingDims ? Number(selectedShape.x) : smooth.x,
-                        ).toString()
+                      ? Math.round(Number(selectedShape.x)).toString()
                       : ""
                   }
                   onChange={(e) => handlePositionChange("x", e.target.value)}
-                  onFocus={() => setEditingDims(true)}
-                  onBlur={() => setEditingDims(false)}
                   disabled={!selectedShape}
                   className="h-8 w-full rounded-md border border-border bg-subtle px-2 text-sm outline-none transition-[color,background-color,border-color] duration-150 ease-out focus:border-border-focus disabled:cursor-not-allowed disabled:opacity-60"
                 />
@@ -259,14 +128,10 @@ function RightSideBar({
                   min={1}
                   value={
                     selectedShape
-                      ? Math.round(
-                          editingDims ? Number(selectedShape.width) : smooth.w,
-                        ).toString()
+                      ? Math.round(Number(selectedShape.width)).toString()
                       : ""
                   }
                   onChange={(e) => handleSizeChange("width", e.target.value)}
-                  onFocus={() => setEditingDims(true)}
-                  onBlur={() => setEditingDims(false)}
                   disabled={!selectedShape}
                   className="h-8 w-full rounded-md border border-border bg-subtle px-2 text-sm outline-none transition-[color,background-color,border-color] duration-150 ease-out focus:border-border-focus disabled:cursor-not-allowed disabled:opacity-60"
                 />
@@ -328,7 +193,7 @@ function RightSideBar({
             <div className="grid grid-cols-[1fr_72px] gap-2">
               <input
                 type="text"
-                value={selectedShape?.stroke || "transparent"}
+                value={selectedShape?.stroke || ""}
                 onChange={(e) =>
                   updateSelectedShape({ stroke: e.target.value })
                 }
@@ -339,7 +204,7 @@ function RightSideBar({
                 type="number"
                 min={0}
                 max={20}
-                value={selectedShape?.strokeWidth ?? 0}
+                value={selectedShape?.strokeWidth || 0}
                 onChange={(e) =>
                   updateSelectedShape({ strokeWidth: Number(e.target.value) })
                 }
@@ -369,16 +234,28 @@ function RightSideBar({
 
           <PanelSection title="Quick Shapes">
             <div className="grid grid-cols-3 gap-2">
-              <ToolButton label="Rect" onClick={() => addShape("rect")} />
-              <ToolButton label="circle" onClick={() => addShape("circle")} />
-              <ToolButton label="Pill" onClick={() => addShape("pill")} />
+              <ToolButton
+                label="Rect"
+                onClick={() => addShape("rect", color, setRectangles)}
+              />
+              <ToolButton
+                label="circle"
+                onClick={() => addShape("circle", color, setRectangles)}
+              />
+              <ToolButton
+                label="Pill"
+                onClick={() => addShape("pill", color, setRectangles)}
+              />
             </div>
           </PanelSection>
         </div>
 
         {/* Footer actions */}
         <div className="border-t border-border p-3">
-          <button className="h-9 w-full rounded-md bg-accent text-sm font-semibold text-accent-foreground transition-colors hover:bg-accent-hover">
+          <button
+            onClick={() => downloadPDF(stageRef)}
+            className="h-9 w-full rounded-md bg-accent text-sm font-semibold text-accent-foreground transition-colors hover:bg-accent-hover"
+          >
             Export
           </button>
         </div>
