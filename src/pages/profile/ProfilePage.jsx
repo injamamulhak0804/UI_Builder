@@ -1,24 +1,9 @@
-function InfoItem({ label, value }) {
-  return (
-    <div>
-      <p className="text-xs uppercase tracking-wide text-text-tertiary">{label}</p>
-      <p className="mt-1 text-sm text-text-primary">{value}</p>
-    </div>
-  );
-}
-
-function Section({ title, children }) {
-  return (
-    <section className="rounded-lg border border-border bg-surface p-4 shadow-panel">
-      <h2 className="text-sm font-semibold text-text-primary">{title}</h2>
-      <div className="mt-3">{children}</div>
-    </section>
-  );
-}
+import { InfoItem } from "../../component/Profile/InfoItem";
+import { Section } from "../../component/Profile/Section";
 
 function ProfilePage() {
   return (
-    <section className="h-full w-full overflow-auto bg-[#f5f5f5] p-6">
+    <Section className="h-full w-full overflow-auto bg-[#f5f5f5] p-6">
       <div className="mx-auto max-w-3xl space-y-4">
         <div>
           <h1 className="text-2xl font-semibold text-text-primary">Profile</h1>
