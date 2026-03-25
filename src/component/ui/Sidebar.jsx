@@ -2,18 +2,9 @@ import { Avatar, Divider, Logo, Tooltip } from "../shared/helper";
 import { navItems } from "../../constants";
 import { SettingSvg } from "../../assets/Svgs";
 
-// ── Main Sidebar ───────────────────────────────────────────────
 export default function Sidebar({ active, setActive }) {
   return (
-    <aside
-      className="
-        flex flex-col items-center
-         h-screen py-8 gap-1
-        bg-surface border-r border-border
-        shadow-panel
-        w-[50%]
-      "
-    >
+    <aside className="flex h-screen w-full flex-col items-center gap-1 border-r border-border bg-surface py-8 shadow-panel">
       {/* Logo */}
       <div className="mb-3">
         <Logo />
@@ -40,13 +31,18 @@ export default function Sidebar({ active, setActive }) {
         <div className="relative group flex items-center justify-center mt-1">
           <button
             aria-label="Settings"
-            className="flex items-center justify-center w-10 h-10 rounded-xl text-text-tertiary hover:text-text-primary hover:bg-subtle transition-all duration-150"
+            onClick={() => setActive("settings")}
+            className={`flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-150 ${
+              active === "settings"
+                ? "bg-accent text-accent-foreground shadow-md shadow-brand-500/20"
+                : "text-text-tertiary hover:text-text-primary hover:bg-subtle"
+            }`}
           >
             <SettingSvg />
           </button>
           <Tooltip label="Settings" />
         </div>
-        <Avatar />
+        <Avatar active={active === "profile"} onClick={() => setActive("profile")} />
       </div>
     </aside>
   );
