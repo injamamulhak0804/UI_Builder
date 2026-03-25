@@ -1,6 +1,59 @@
-import { useLayoutEffect, useRef, useState } from "react";
-import { Layer, Rect, Stage } from "react-konva";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
+import { Layer, Line, Rect, Stage } from "react-konva";
 import Rectangle from "../../component/Canva/Rectangle";
+
+function GridLayer({
+  width,
+  height,
+  gridSize = 10,
+  majorEvery = 5,
+  minorColor = "rgba(0,0,0,0.04)",
+  majorColor = "rgba(0,0,0,0.06)",
+}) {
+  const lines = useMemo(() => {
+    const out = [];
+    if (!width || !height || gridSize <= 0) return out;
+
+    const vCount = Math.ceil(width / gridSize);
+    const hCount = Math.ceil(height / gridSize);
+
+    for (let i = 0; i <= vCount; i += 1) {
+      const x = i * gridSize;
+      const isMajor = majorEvery > 0 && i % majorEvery === 0;
+      out.push(
+        <Line
+          key={`v-${i}`}
+          points={[x, 0, x, height]}
+          stroke={isMajor ? majorColor : minorColor}
+          strokeWidth={1}
+          perfectDrawEnabled={false}
+        />,
+      );
+    }
+
+    for (let i = 0; i <= hCount; i += 1) {
+      const y = i * gridSize;
+      const isMajor = majorEvery > 0 && i % majorEvery === 0;
+      out.push(
+        <Line
+          key={`h-${i}`}
+          points={[0, y, width, y]}
+          stroke={isMajor ? majorColor : minorColor}
+          strokeWidth={1}
+          perfectDrawEnabled={false}
+        />,
+      );
+    }
+
+    return out;
+  }, [width, height, gridSize, majorEvery, minorColor, majorColor]);
+
+  return (
+    <Layer listening={false} hitGraphEnabled={false}>
+      {lines}
+    </Layer>
+  );
+}
 
 function CreateCanavaPage({
   color,
@@ -11,13 +64,13 @@ function CreateCanavaPage({
   checkDeselect,
   selectedId,
   selectShape,
+  stageRef,
 }) {
   const containerRef = useRef(null);
   const [stageSize, setStageSize] = useState({
     width: 0,
     height: 0,
   });
-  const stageRef = useRef(null);
 
   const [newRect, setNewRect] = useState(null);
 
@@ -75,6 +128,8 @@ function CreateCanavaPage({
         height: Math.abs(height),
         color: prev.color,
         id: prev.id,
+        stroke: "transparent",
+        strokeWidth: 0,
       };
     });
   };
@@ -108,6 +163,7 @@ function CreateCanavaPage({
           onTouchMove={handlePointerMove}
           onTouchEnd={handlePointerUp}
         >
+          <GridLayer width={stageSize.width} height={stageSize.height} />
           <Layer>
             {rectangles.map((rect, i) => {
               return (
