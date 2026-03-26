@@ -37,9 +37,7 @@ function App() {
       if (isTyping) return;
 
       e.preventDefault();
-      setRectangles((prev) =>
-        prev.filter((item) => item.id !== selectedCom),
-      );
+      setRectangles((prev) => prev.filter((item) => item.id !== selectedCom));
       setImages((prev) => prev.filter((item) => item.id !== selectedCom));
       SetSelectedCom(null);
       selectShape(null);
