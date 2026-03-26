@@ -11,14 +11,16 @@ const Rectangle = ({ shapeProps, isSelected, onSelect, onChange }) => {
     trRef.current.nodes([shapeRef.current]);
   }, [isSelected]);
 
-  const { width, height, type } = shapeProps;
+  const { width, height, type, opacity } = shapeProps;
 
   const fill = shapeProps.color ?? shapeProps.fill;
   const stroke = shapeProps.stroke ?? "transparent";
   const strokeWidth = shapeProps.strokeWidth ?? 0;
 
   const isCircle = type === "circle";
-  const cornerRadius = isCircle ? Math.min(width, height) / 2 : shapeProps.cornerRadius ?? 0;
+  const cornerRadius = isCircle
+    ? Math.min(width, height) / 2
+    : (shapeProps.cornerRadius ?? 0);
 
   const handleDragEnd = (e) => {
     onChange({
@@ -137,6 +139,7 @@ const Rectangle = ({ shapeProps, isSelected, onSelect, onChange }) => {
         draggable
         onDragEnd={handleDragEnd}
         onTransformEnd={handleTransformEnd}
+        opacity={opacity}
       />
       {isSelected && (
         <Transformer
