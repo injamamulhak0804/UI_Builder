@@ -6,23 +6,42 @@ function RightSideBar({
   setColor,
   setRectangles,
   rectangles,
+  images,
+  setImages,
   selectedCom,
   stageRef,
 }) {
-  const selectedShape = useMemo(
+  const selectedRect = useMemo(
     () => rectangles.find((item) => item.id === selectedCom) || null,
     [rectangles, selectedCom],
   );
 
-  const updateSelectedShape = (patch) => {
-    console.log(selectedShape);
+  const selectedImage = useMemo(
+    () => images.find((item) => item.id === selectedCom) || null,
+    [images, selectedCom],
+  );
 
+  const selectedShape = selectedRect || selectedImage || null;
+
+  const updateSelectedShape = (patch) => {
     if (!selectedCom) return;
-    setRectangles((prev) =>
-      prev.map((item) =>
-        item.id === selectedCom ? { ...item, ...patch } : item,
-      ),
-    );
+
+    if (selectedRect) {
+      setRectangles((prev) =>
+        prev.map((item) =>
+          item.id === selectedCom ? { ...item, ...patch } : item,
+        ),
+      );
+      return;
+    }
+
+    if (selectedImage) {
+      setImages((prev) =>
+        prev.map((item) =>
+          item.id === selectedCom ? { ...item, ...patch } : item,
+        ),
+      );
+    }
   };
 
   const handleSizeChange = (key, value) => {
@@ -35,9 +54,10 @@ function RightSideBar({
   };
 
   const shapeFillDisplay =
-    selectedShape?.color ?? selectedShape?.fill ?? color ?? "#000000";
+    selectedRect?.color ?? selectedRect?.fill ?? color ?? "#000000";
 
   const handleFillChange = (event) => {
+    if (!selectedRect) return;
     const next = event.target.value;
     setColor(next);
     if (selectedCom) {
@@ -47,8 +67,8 @@ function RightSideBar({
 
   /** Text / hex input: keep Konva fill and `color` in sync; update global swatch for new shapes. */
   const handleFillTextChange = (event) => {
+    if (!selectedRect) return;
     const next = event.target.value;
-    if (!selectedShape) return;
     setColor(next);
     updateSelectedShape({ color: next, fill: next });
   };
@@ -165,25 +185,26 @@ function RightSideBar({
               <input
                 type="color"
                 title={
-                  selectedShape
+                  selectedRect
                     ? "Shape fill (also updates default for new shapes)"
                     : "Default fill for new shapes"
                 }
                 value={hex6ForColorInput(
-                  selectedShape ? shapeFillDisplay : color,
+                  selectedRect ? shapeFillDisplay : color,
                   hex6ForColorInput(color, "#FFC0CB"),
                 )}
-                className="h-8 w-8 cursor-pointer rounded border border-border bg-transparent"
+                disabled={!selectedRect}
+                className="h-8 w-8 cursor-pointer rounded border border-border bg-transparent disabled:cursor-not-allowed disabled:opacity-60"
                 onChange={handleFillChange}
               />
               <input
                 type="text"
-                value={selectedShape ? shapeFillDisplay : ""}
+                value={selectedRect ? shapeFillDisplay : ""}
                 onChange={handleFillTextChange}
                 placeholder={
-                  selectedShape ? "#hex or css color" : "Select a shape first"
+                  selectedRect ? "#hex or css color" : "Select a shape first"
                 }
-                disabled={!selectedShape}
+                disabled={!selectedRect}
                 className="h-8 w-full rounded-md border border-border bg-subtle px-2 text-sm outline-none focus:border-border-focus disabled:cursor-not-allowed disabled:opacity-60"
               />
             </div>
@@ -193,22 +214,25 @@ function RightSideBar({
             <div className="grid grid-cols-[1fr_72px] gap-2">
               <input
                 type="text"
-                value={selectedShape?.stroke || ""}
+                value={selectedRect?.stroke || ""}
                 onChange={(e) =>
-                  updateSelectedShape({ stroke: e.target.value })
+                  selectedRect && updateSelectedShape({ stroke: e.target.value })
                 }
                 placeholder="Stroke color"
-                className="h-8 rounded-md border border-border bg-subtle px-2 text-sm outline-none focus:border-border-focus"
+                disabled={!selectedRect}
+                className="h-8 rounded-md border border-border bg-subtle px-2 text-sm outline-none focus:border-border-focus disabled:cursor-not-allowed disabled:opacity-60"
               />
               <input
                 type="number"
                 min={0}
                 max={20}
-                value={selectedShape?.strokeWidth || 0}
+                value={selectedRect?.strokeWidth || 0}
                 onChange={(e) =>
+                  selectedRect &&
                   updateSelectedShape({ strokeWidth: Number(e.target.value) })
                 }
-                className="h-8 rounded-md border border-border bg-subtle px-2 text-sm outline-none focus:border-border-focus"
+                disabled={!selectedRect}
+                className="h-8 rounded-md border border-border bg-subtle px-2 text-sm outline-none focus:border-border-focus disabled:cursor-not-allowed disabled:opacity-60"
               />
             </div>
           </PanelSection>
