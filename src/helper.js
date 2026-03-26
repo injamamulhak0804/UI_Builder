@@ -88,6 +88,26 @@ export const addShape = (type, color, setRectangles) => {
         strokeWidth: 4,
       },
     ]);
+    return;
+  }
+
+  if (type === "text") {
+    setRectangles((prev) => [
+      ...prev,
+      {
+        ...base,
+        type: "text",
+        text: "Double click to edit",
+        fontSize: 24,
+        fontFamily: "Arial",
+        width: 220,
+        height: 30,
+        align: "left",
+        lineHeight: 1.2,
+        fill: color,
+      },
+    ]);
+    return;
   }
 };
 
