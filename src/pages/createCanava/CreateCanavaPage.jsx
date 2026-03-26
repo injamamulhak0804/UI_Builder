@@ -14,6 +14,8 @@ import { TfiText } from "react-icons/tfi";
 import Rectangle from "../../component/Canva/Rectangle";
 import useImage from "use-image";
 import { addShape } from "../../helper";
+import { IoTriangleOutline } from "react-icons/io5";
+import { GoArrowUpRight } from "react-icons/go";
 
 function GridLayer({
   width,
@@ -344,6 +346,22 @@ function CreateCanavaPage({
             onClick={() => addShape("circle", color, setRectangles)}
           >
             <GoCircle size={18} />
+          </div>
+          <div
+            className="cursor-pointer rounded-md bg-slate-100 p-2 text-slate-700 transition hover:bg-slate-200"
+            onClick={() => addShape("triangle", color, setRectangles)}
+          >
+            {/* <span className="text-sm font-bold leading-none"> */}
+              <IoTriangleOutline />
+            {/* </span> */}
+          </div>
+          <div
+            className="cursor-pointer rounded-md bg-slate-100 p-2 text-slate-700 transition hover:bg-slate-200"
+            onClick={() => addShape("arrow", color, setRectangles)}
+          >
+            {/* <span className="text-sm font-bold leading-none"> */}
+              <GoArrowUpRight />
+            {/* </span> */}
           </div>
         </div>
       </div>
