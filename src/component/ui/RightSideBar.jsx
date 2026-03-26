@@ -61,7 +61,21 @@ function RightSideBar({
     const next = event.target.value;
     setColor(next);
     if (selectedCom) {
-      updateSelectedShape({ color: next, fill: next });
+      const patch = { color: next, fill: next };
+
+      // For arrows, the visible shaft uses stroke; keep it in sync only when the user
+      // hasn't explicitly changed stroke away from the previous fill color.
+      if (selectedRect.type === "arrow") {
+        const shouldSyncStroke =
+          !selectedRect.stroke ||
+          selectedRect.stroke === "transparent" ||
+          selectedRect.stroke === selectedRect.fill ||
+          selectedRect.stroke === selectedRect.color;
+
+        if (shouldSyncStroke) patch.stroke = next;
+      }
+
+      updateSelectedShape(patch);
     }
   };
 
@@ -70,7 +84,18 @@ function RightSideBar({
     if (!selectedRect) return;
     const next = event.target.value;
     setColor(next);
-    updateSelectedShape({ color: next, fill: next });
+
+    const patch = { color: next, fill: next };
+    if (selectedRect.type === "arrow") {
+      const shouldSyncStroke =
+        !selectedRect.stroke ||
+        selectedRect.stroke === "transparent" ||
+        selectedRect.stroke === selectedRect.fill ||
+        selectedRect.stroke === selectedRect.color;
+      if (shouldSyncStroke) patch.stroke = next;
+    }
+
+    updateSelectedShape(patch);
   };
 
   const handlePositionChange = (key, value) => {
@@ -216,7 +241,8 @@ function RightSideBar({
                 type="text"
                 value={selectedRect?.stroke || ""}
                 onChange={(e) =>
-                  selectedRect && updateSelectedShape({ stroke: e.target.value })
+                  selectedRect &&
+                  updateSelectedShape({ stroke: e.target.value })
                 }
                 placeholder="Stroke color"
                 disabled={!selectedRect}
@@ -269,6 +295,14 @@ function RightSideBar({
               <ToolButton
                 label="Pill"
                 onClick={() => addShape("pill", color, setRectangles)}
+              />
+              <ToolButton
+                label="Triangle"
+                onClick={() => addShape("triangle", color, setRectangles)}
+              />
+              <ToolButton
+                label="Arrow"
+                onClick={() => addShape("arrow", color, setRectangles)}
               />
             </div>
           </PanelSection>
