@@ -57,11 +57,7 @@ export async function downloadPDF(stageRef, options = {}) {
   const stage = stageRef?.current;
   if (!stage) return;
 
-  const {
-    fileName = "canvas.pdf",
-    pixelRatio = 2,
-    margin = 0,
-  } = options;
+  const { fileName = "canvas.pdf", pixelRatio = 2, margin = 0 } = options;
 
   // Lazy import to keep initial bundle smaller
   const { jsPDF } = await import("jspdf");
