@@ -1,15 +1,15 @@
 import express from "express";
 import {
   getZentora,
-  createZentora
+  createZentora,
 } from "../controllers/zentora.controller.js";
 
 const router = express.Router();
 
 // GET
-router.get("/user", getZentora);
+router.get("/user/signin", getZentora);
 
 // POST
-router.post("/user", createZentora);
+router.post("/user/signup", createZentora);
 
 export default router;
