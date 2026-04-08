@@ -6,8 +6,8 @@ import {
 
 const router = express.Router();
 
-// GET
-router.get("/user/signin", getZentora);
+// POST
+router.post("/user/signin", getZentora);
 
 // POST
 router.post("/user/signup", createZentora);
