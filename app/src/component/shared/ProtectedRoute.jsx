@@ -1,32 +1,37 @@
-// ProtectedRoute.jsx with Axios
 import { Navigate } from "react-router-dom";
-import { useState, useEffect } from "react";
-import axios from "axios";
+import { useEffect, useState } from "react";
 
 const ProtectedRoute = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(null);
-  const token = localStorage.getItem("token");
+  const [loading, setLoading] = useState(true);
+  const [isAuth, setIsAuth] = useState(false);
 
   useEffect(() => {
-    if (!token) {
-      setIsAuthenticated(false);
-      return;
-    }
+    const verifyUser = async () => {
+      try {
+        const res = await fetch("http://localhost:8000/api/v1/verify", {
+          credentials: "include",
+        });
 
-    axios
-      .get("http://localhost:5000/api/verify", {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(() => setIsAuthenticated(true))
-      .catch(() => {
-        localStorage.removeItem("token");
-        setIsAuthenticated(false);
-      });
-  }, [token]);
+        if (!res.ok) {
+          setIsAuth(false);
+          return;
+        }
 
-  if (isAuthenticated === null) return <div>Loading...</div>;
+        const data = await res.json();
+        setIsAuth(data.success);
+      } catch (error) {
+        setIsAuth(false);
+      } finally {
+        setLoading(false);
+      }
+    };
+    console.log("CHECKING AUTH...");
+    verifyUser();
+  }, []);
 
-  return isAuthenticated ? children : <Navigate to="/auth" replace />;
+  if (loading) return <div>Loading...</div>;
+
+  return isAuth ? children : <Navigate to="/auth" replace />;
 };
 
 export default ProtectedRoute;
