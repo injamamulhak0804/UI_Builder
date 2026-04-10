@@ -9,6 +9,7 @@ import ProfilePage from "./pages/profile/ProfilePage";
 import MobileWarningPopup from "./component/ui/MobileWarningPopup";
 import Auth from "./component/shared/Auth";
 import ProtectedRoute from "./component/shared/ProtectedRoute";
+import { saveCanvasData } from "./helper";
 
 function App() {
   const [active, setActive] = useState("canava");
@@ -53,6 +54,14 @@ function App() {
       window.removeEventListener("keydown", handleBackSpace);
     };
   }, [selectedCom]);
+
+  window.addEventListener("keydown", function (event) {
+    // Check for Ctrl+S or Cmd+S (Mac)
+    if ((event.ctrlKey || event.metaKey) && event.key === "s") {
+      event.preventDefault(); // Stop the browser from trying to save the HTML page
+      saveCanvasData({ reactangle: rectangles, images, color });
+    }
+  });
 
   return (
     <>
