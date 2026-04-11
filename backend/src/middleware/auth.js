@@ -1,14 +1,16 @@
 import jwt from "jsonwebtoken";
-import User from "../models/ zentora.model.js";
+import User from "../models/zentora.model.js";
 
-export const verifyAuth = async (req, res, next) => {
-  const token = req.cookies.token;
-
-  if (!token) {
-    return res.status(401).json({ message: "Not authenticated" });
-  }
-
+export const verifyAuth = async (req, res) => {
   try {
+    console.log("logged");
+
+    const token = req.cookies.token;
+
+    if (!token) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
     const decodedData = jwt.verify(token, process.env.JWT_SECRET);
     const { _id } = decodedData;
 
@@ -18,8 +20,9 @@ export const verifyAuth = async (req, res, next) => {
 
     req.user = decodedData; // Attach user data to request object
     req.user = await User.findById(_id);
-    next();
-  } catch {
+    return res.status(200).json({ success: true, user: req.user });
+  } catch (error) {
+    console.log("error: ", error);
     return res.status(401).json({ message: "Token expired" });
   }
 };

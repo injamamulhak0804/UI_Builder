@@ -139,3 +139,35 @@ export async function downloadPDF(stageRef, options = {}) {
   pdf.addImage(dataUrl, "PNG", margin, margin, width, height);
   pdf.save(fileName);
 }
+
+export async function saveCanvasData({ reactangle, images, color }) {
+  const canvasData = {
+    elements: [reactangle, images, color], // Replace with your actual design state/JSON
+    lastUpdated: new Date().toISOString(),
+  };
+
+  try {
+    const response = await fetch(
+      import.meta.env.VITE_BACKEND_URL + "/api/v1/user/save",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        // CRITICAL: This allows the browser to send the cookie automatically
+        credentials: "include",
+        body: JSON.stringify({
+          canvasData,
+        }),
+      },
+    );
+
+    if (response.ok) {
+      console.log("Design saved successfully!");
+    } else {
+      console.error("Save failed:", response.statusText);
+    }
+  } catch (error) {
+    console.error("Network error:", error);
+  }
+}
